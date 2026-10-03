@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Astronaut Health Monitor</title>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- Top Navigation Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 12 2.1 12a10 10 0 0 0 9.9 9.9V12z"/><circle cx="12" cy="12" r="4"/></svg>
+        </div>
+        <div>
+          <h1>Astronaut Health Monitor</h1>
+          <p class="subtitle">Artemis Mission Control • Telemetry Dashboard</p>
+        </div>
+      </div>
+
+      <!-- Step 5: Mission-day/time indicator -->
+      <div class="mission-time-badge">
+        <span class="time-label">MISSION TIME</span>
+        <span class="time-value" id="missionClock">Sol 42 • 14:32:05</span>
+      </div>
+
+      <!-- Right Header Group: Status + Dark/Light Theme Toggle -->
+      <div class="header-right-group">
+        <div class="status-indicator-box">
+          <span class="status-label">HEALTH STATUS</span>
+          <div class="status-pill status-normal" id="globalStatusPill">
+            <span class="dot"></span>
+            <span id="globalStatusText">Normal</span>
+          </div>
+        </div>
+
+        <!-- Dark / Light Mode Toggle Button -->
+        <button id="themeToggleBtn" class="theme-toggle-btn" aria-label="Toggle Theme">
+          <span id="themeIcon">☀️</span>
+          <span id="themeText">Light Mode</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Alert Banner (Step 4) -->
+    <div id="alertBanner" class="alert-banner alert-critical hidden">
+      <div class="alert-icon">⚠️</div>
+      <div class="alert-info">
+        <strong id="alertTitle">CRITICAL ALERT</strong>
+        <span id="alertMessage">Oxygen level is dangerously low (&lt; 90%). Immediate action required!</span>
+      </div>
+      <button class="btn-ack" id="dismissAlertBtn">Acknowledge</button>
+    </div>
+
+    <!-- Step 1: Dashboard for one astronaut -->
+    <section class="astronaut-card">
+      <div class="astronaut-avatar">
+        <svg viewBox="0 0 100 100" width="70" height="70">
+          <circle cx="50" cy="50" r="46" fill="var(--avatar-bg)" stroke="var(--color-blue)" stroke-width="3"/>
+          <circle cx="50" cy="40" r="20" fill="var(--color-blue)" opacity="0.3"/>
+          <path d="M25 78 C25 60, 75 60, 75 78 Z" fill="var(--text-sub)"/>
+          <path d="M36 38 Q50 30 64 38 Q64 48 50 50 Q36 48 36 38 Z" fill="var(--bg-main)" stroke="var(--color-blue)" stroke-width="2"/>
+        </svg>
+      </div>
+      <div class="astronaut-meta">
+        <div class="name-row">
+          <h2>Commander Alex Vance</h2>
+          <span class="badge">Commander • Artemis XI</span>
+        </div>
+        <div class="stats-row">
+          <span><strong>Age:</strong> 38</span>
+          <span><strong>Blood Type:</strong> O+</span>
+          <span><strong>Suit Pressure:</strong> 4.3 psi (Nominal)</span>
+          <span><strong>Location:</strong> Hab Module Alpha</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 2: Display at least 4 health parameters -->
+    <section class="vitals-grid">
+      
+      <!-- Parameter 1: Heart Rate -->
+      <div class="vital-card" id="cardHeartRate">
+        <div class="card-header">
+          <span class="vital-title">Heart Rate</span>
+          <span class="status-tag normal" id="tagHeartRate">Normal</span>
+        </div>
+        <div class="vital-value-wrap">
+          <span class="value" id="valHeartRate">72</span>
+          <span class="unit">bpm</span>
+        </div>
+        <div class="range-indicator">
+          <div class="range-bar">
+            <div class="range-fill" id="barHeartRate" style="width: 40%;"></div>
+          </div>
+          <div class="range-meta">
+            <span>40</span>
+            <span>Target: 60-100</span>
+            <span>140</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Parameter 2: Oxygen Level -->
+      <div class="vital-card" id="cardOxygen">
+        <div class="card-header">
+          <span class="vital-title">Oxygen Level (SpO2)</span>
+          <span class="status-tag normal" id="tagOxygen">Normal</span>
+        </div>
+        <div class="vital-value-wrap">
+          <span class="value" id="valOxygen">98</span>
+          <span class="unit">%</span>
+        </div>
+        <div class="range-indicator">
+          <div class="range-bar">
+            <div class="range-fill" id="barOxygen" style="width: 98%;"></div>
+          </div>
+          <div class="range-meta">
+            <span class="alert-limit">Critical: &lt; 90%</span>
+            <span>Target: 95-100%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Parameter 3: Body Temperature -->
+      <div class="vital-card" id="cardTemperature">
+        <div class="card-header">
+          <span class="vital-title">Body Temperature</span>
+          <span class="status-tag normal" id="tagTemperature">Normal</span>
+        </div>
+        <div class="vital-value-wrap">
+          <span class="value" id="valTemperature">36.8</span>
+          <span class="unit">°C</span>
+        </div>
+        <div class="range-indicator">
+          <div class="range-bar">
+            <div class="range-fill" id="barTemperature" style="width: 50%;"></div>
+          </div>
+          <div class="range-meta">
+            <span>35°C</span>
+            <span>Target: 36.5-37.5°C</span>
+            <span>40°C</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Parameter 4: Sleep Duration -->
+      <div class="vital-card" id="cardSleep">
+        <div class="card-header">
+          <span class="vital-title">Sleep Duration</span>
+          <span class="status-tag normal" id="tagSleep">Normal</span>
+        </div>
+        <div class="vital-value-wrap">
+          <span class="value" id="valSleep">7.5</span>
+          <span class="unit">hrs</span>
+        </div>
+        <div class="range-indicator">
+          <div class="range-bar">
+            <div class="range-fill" id="barSleep" style="width: 83%;"></div>
+          </div>
+          <div class="range-meta">
+            <span>Target: 7-9 hrs</span>
+            <span>Quality: 88%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Parameter 5: Exercise Time -->
+      <div class="vital-card" id="cardExercise">
+        <div class="card-header">
+          <span class="vital-title">Exercise Time</span>
+          <span class="status-tag normal" id="tagExercise">Normal</span>
+        </div>
+        <div class="vital-value-wrap">
+          <span class="value" id="valExercise">55</span>
+          <span class="unit">mins</span>
+        </div>
+        <div class="range-indicator">
+          <div class="range-bar">
+            <div class="range-fill" id="barExercise" style="width: 91%;"></div>
+          </div>
+          <div class="range-meta">
+            <span>Daily Goal: 60 mins</span>
+            <span>520 kcal</span>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Analytics & Simulation Section -->
+    <div class="dashboard-grid">
+      
+      <!-- Chart -->
+      <div class="panel">
+        <div class="panel-title">Real-Time Telemetry Trend</div>
+        <div class="chart-box">
+          <canvas id="telemetryChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Simulator Controls for Testing -->
+      <div class="panel">
+        <div class="panel-title">Test Health Scenarios</div>
+        <p class="panel-desc">Test alert thresholds by picking a scenario or moving the sliders:</p>
+        
+        <div class="presets-row">
+          <button class="btn preset-btn" id="btnPresetNormal">Nominal (Normal)</button>
+          <button class="btn preset-btn warning" id="btnPresetWarning">High HR (Warning)</button>
+          <button class="btn preset-btn danger" id="btnPresetHypoxia">Low O2 &lt; 90% (Critical)</button>
+        </div>
+
+        <div class="sliders-list">
+          <div class="slider-item">
+            <div class="slider-label">
+              <span>Oxygen Level:</span>
+              <strong id="sliderO2Val">98%</strong>
+            </div>
+            <input type="range" id="sliderO2" min="75" max="100" value="98" step="1">
+          </div>
+
+          <div class="slider-item">
+            <div class="slider-label">
+              <span>Heart Rate:</span>
+              <strong id="sliderHRVal">72 bpm</strong>
+            </div>
+            <input type="range" id="sliderHR" min="40" max="150" value="72" step="1">
+          </div>
+
+          <div class="slider-item">
+            <div class="slider-label">
+              <span>Body Temperature:</span>
+              <strong id="sliderTempVal">36.8 °C</strong>
+            </div>
+            <input type="range" id="sliderTemp" min="34" max="41" value="36.8" step="0.1">
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <footer class="app-footer">
+      <span>NASA Artemis Medical Telemetry • Sol 42</span>
+      <span>System Status: Online</span>
+    </footer>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
